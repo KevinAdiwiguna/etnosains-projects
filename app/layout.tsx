@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
+
 import "@/styles/globals.css";
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
+
+import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
+
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { QueryProvider } from "@/components/providers/query-providers";

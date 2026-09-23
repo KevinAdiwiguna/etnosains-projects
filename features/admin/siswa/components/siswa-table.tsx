@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 
 import { SiswaActions } from "./siswa-actions";
 import { SiswaDialog, SiswaFormData } from "./siswa-dialog";
+import { SiswaDeleteDialog } from "./siswa-delete-dialog";
 import {
   useStudents,
   useUpdateStudent,
@@ -24,6 +25,9 @@ export function SiswaTable({ searchQuery = "" }: SiswaTableProps) {
   const [selectedSiswa, setSelectedSiswa] = useState<User | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  const [siswaToDelete, setSiswaToDelete] = useState<User | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
   const filteredStudents = students.filter((siswa) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
@@ -42,10 +46,19 @@ export function SiswaTable({ searchQuery = "" }: SiswaTableProps) {
   }
 
   function handleDelete(siswa: User) {
-    const confirmed = window.confirm(`Hapus data ${siswa.name}?`);
-    if (!confirmed) return;
+    setSiswaToDelete(siswa);
+    setDeleteDialogOpen(true);
+  }
 
-    deleteMutation.mutate(siswa.id);
+  function handleConfirmDelete() {
+    if (!siswaToDelete) return;
+
+    deleteMutation.mutate(siswaToDelete.id, {
+      onSuccess: () => {
+        setDeleteDialogOpen(false);
+        setSiswaToDelete(null);
+      },
+    });
   }
 
   function handleUpdateSubmit(data: SiswaFormData) {
@@ -243,6 +256,17 @@ export function SiswaTable({ searchQuery = "" }: SiswaTableProps) {
         }}
         onSubmit={handleUpdateSubmit}
         isLoading={updateMutation.isPending}
+      />
+
+      <SiswaDeleteDialog
+        open={deleteDialogOpen}
+        siswa={siswaToDelete}
+        onClose={() => {
+          setDeleteDialogOpen(false);
+          setSiswaToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        isLoading={deleteMutation.isPending}
       />
     </>
   );

@@ -2,14 +2,13 @@
 
 import React from 'react';
 import { BuilderItem } from '../types/builder';
-import { ModuleHeaderElement } from './elements/module-header-element';
-import { MediaContainerElement } from './elements/media-container-element';
-import { CalloutElement } from './elements/callout-element';
-import { LearningObjectivesElement } from './elements/learning-objectives-element';
-import { PhaseGridElement } from './elements/phase-grid-element';
-import { BottomActionBarElement } from './elements/bottom-action-bar-element';
-import { TextElement } from './elements/text-element';
-import { FlipCardElement } from './elements/flip-card-element';
+import { EthnographicDescription } from './elements/ethnographic-description';
+import { MediaContainer } from './elements/media-container';
+import { PhysicsCallout } from './elements/physics-callout';
+import { LearningObjectives } from './elements/learning-objectives';
+import { PhaseGrid } from './elements/phase-grid';
+// import { TextElement } from './elements/text-element';
+// import { FlipCardElement } from './elements/flip-card-element';
 
 interface BuilderElementRendererProps {
   item: BuilderItem;
@@ -25,94 +24,78 @@ export function BuilderElementRenderer({
   const { id, type, value = {} } = item;
 
   switch (type) {
-    case 'MODULE_HEADER':
+    case 'ETHNOGRAPHIC_DESCRIPTION':
       return (
-        <ModuleHeaderElement
+        <EthnographicDescription
           badgeText={value.badgeText}
-          title={value.title}
-          descriptionTitle={value.descriptionTitle}
           descriptionText={value.descriptionText}
           isEditable={isEditable}
-          onUpdate={(field, val) =>
-            onUpdate(id, 'value', { ...value, [field]: val })
-          }
+          onChange={(val) => onUpdate(id, 'value', { ...value, ...val })}
         />
       );
 
     case 'MEDIA_CONTAINER':
       return (
-        <MediaContainerElement
-          headerBadge={value.headerBadge}
+        <MediaContainer
+          headerTagText={value.headerTagText}
           placeholderText={value.placeholderText}
-          tags={value.tags}
+          badges={value.badges}
           isEditable={isEditable}
-          onUpdate={(field, val) =>
-            onUpdate(id, 'value', { ...value, [field]: val })
-          }
+          onChange={(val) => onUpdate(id, 'value', { ...value, ...val })}
         />
       );
 
-    case 'CALLOUT':
+    case 'PHYSICS_CALLOUT':
       return (
-        <CalloutElement
+        <PhysicsCallout
           badgeText={value.badgeText}
           questionText={value.questionText}
           isEditable={isEditable}
-          onUpdate={(field, val) =>
-            onUpdate(id, 'value', { ...value, [field]: val })
-          }
+          onChange={(val) => onUpdate(id, 'value', { ...value, ...val })}
         />
       );
 
     case 'LEARNING_OBJECTIVES':
       return (
-        <LearningObjectivesElement
-          title={value.title}
+        <LearningObjectives
+          headerTitle={value.headerTitle}
           items={value.items}
           isEditable={isEditable}
-          onUpdate={(newItems) =>
-            onUpdate(id, 'value', { ...value, items: newItems })
-          }
+          onChange={(val) => onUpdate(id, 'value', { ...value, ...val })}
         />
       );
 
     case 'PHASE_GRID':
       return (
-        <PhaseGridElement
-          title={value.title}
+        <PhaseGrid
+          headerTitle={value.headerTitle}
           phases={value.phases}
+          isEditable={isEditable}
+          onChange={(val) => onUpdate(id, 'value', { ...value, ...val })}
         />
       );
 
-    case 'BOTTOM_ACTION_BAR':
-      return (
-        <BottomActionBarElement
-          leftText={value.leftText}
-          rightText={value.rightText}
-        />
-      );
+    // case 'TEXT':
+    //   return (
+    //     <TextElement
+    //       title={value.title}
+    //       text={value.text}
+    //       isEditable={isEditable}
+    //       onChange={(val) => onUpdate(id, 'value', { ...value, ...val })}
+    //     />
+    //   );
 
-    case 'TEXT':
-      return (
-        <TextElement
-          element={{ id, type: 'TEXT', value }}
-          cardId={id}
-          onUpdateValue={(_, elementId, newVal) =>
-            onUpdate(elementId, 'value', { ...value, ...newVal })
-          }
-        />
-      );
-
-    case 'FLIP_CARD':
-      return (
-        <FlipCardElement
-          element={{ id, type: 'FLIP_CARD', value }}
-          cardId={id}
-          onUpdateValue={(_, elementId, newVal) =>
-            onUpdate(elementId, 'value', { ...value, ...newVal })
-          }
-        />
-      );
+    // case 'FLIP_CARD':
+    //   return (
+    //     <FlipCardElement
+    //       frontTitle={value.frontTitle}
+    //       frontSub={value.frontSub}
+    //       backTitle={value.backTitle}
+    //       backText={value.backText}
+    //       isEditable={isEditable}
+    //       onChange={(val) => onUpdate(id, 'value', { ...value, ...val })}
+    //     />
+    //   );
 
     default:
       return null;

@@ -1,23 +1,26 @@
 export type ElementType =
   | 'ACCESS_CARD'
-  | 'MODULE_HEADER'
+  | 'SUB_ACCESS_CARD'
+  | 'ETHNOGRAPHIC_DESCRIPTION'
   | 'MEDIA_CONTAINER'
-  | 'CALLOUT'
+  | 'PHYSICS_CALLOUT'
   | 'LEARNING_OBJECTIVES'
   | 'PHASE_GRID'
-  | 'BOTTOM_ACTION_BAR'
   | 'TEXT'
   | 'FLIP_CARD';
+
+export type LayoutWidth = 'w-full' | 'w-1/2' | 'w-1/3' | 'w-2/3';
 
 export interface BuilderItem {
   id: string;
   type: ElementType;
-  colSpan?: number;
+  layoutWidth?: LayoutWidth;
   title?: string;
   note?: string;
   phase?: string;
   description?: string;
   colorTheme?: string;
+  titleAs?: 'h3' | 'h4';
   value?: Record<string, any>;
   children?: BuilderItem[];
 }

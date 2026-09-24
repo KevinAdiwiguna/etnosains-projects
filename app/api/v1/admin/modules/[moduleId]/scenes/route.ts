@@ -1,26 +1,57 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma'; // Sesuaikan lokasi penamaan instance prisma kamu
+
+import { prisma } from '@/lib/db/prisma';
+import {
+  ApiErrorResponse,
+  ApiSuccessResponse,
+  HttpStatusCode,
+} from '@/types/api';
 
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ moduleId: string }> }
 ) {
   try {
-    // Unwrap params dengan await
     const { moduleId } = await params;
 
     const scenes = await prisma.scene.findMany({
-      where: { moduleId },
-      orderBy: { order: 'asc' },
+      where: {
+        moduleId,
+      },
+      orderBy: {
+        order: 'asc',
+      },
       include: {
         builderContent: true,
       },
     });
 
-    return NextResponse.json(scenes, { status: 200 });
+    const response: ApiSuccessResponse<typeof scenes> = {
+      success: true,
+      message: 'Data fase pembelajaran berhasil diambil.',
+      data: scenes,
+      code: HttpStatusCode.OK,
+    };
+
+    return NextResponse.json(response, {
+      status: HttpStatusCode.OK,
+    });
   } catch (error) {
     console.error('[SCENES_GET_ERROR]', error);
-    return NextResponse.json({ error: 'Gagal mengambil data fase' }, { status: 500 });
+
+    const response: ApiErrorResponse = {
+      success: false,
+      message: 'Gagal mengambil data fase pembelajaran.',
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Terjadi kesalahan yang tidak diketahui.',
+      code: HttpStatusCode.INTERNAL_SERVER_ERROR,
+    };
+
+    return NextResponse.json(response, {
+      status: HttpStatusCode.INTERNAL_SERVER_ERROR,
+    });
   }
 }
 
@@ -31,10 +62,24 @@ export async function POST(
   try {
     const { moduleId } = await params;
     const body = await req.json();
-    const { code, title, order, status } = body;
+
+    const {
+      code,
+      title,
+      order,
+      status,
+    } = body;
 
     if (!code || !title) {
-      return NextResponse.json({ error: 'Kode dan Judul fase wajib diisi' }, { status: 400 });
+      const response: ApiErrorResponse = {
+        success: false,
+        message: 'Kode dan judul fase wajib diisi.',
+        code: HttpStatusCode.BAD_REQUEST,
+      };
+
+      return NextResponse.json(response, {
+        status: HttpStatusCode.BAD_REQUEST,
+      });
     }
 
     const newScene = await prisma.scene.create({
@@ -47,9 +92,31 @@ export async function POST(
       },
     });
 
-    return NextResponse.json(newScene, { status: 201 });
+    const response: ApiSuccessResponse<typeof newScene> = {
+      success: true,
+      message: 'Fase pembelajaran berhasil dibuat.',
+      data: newScene,
+      code: HttpStatusCode.CREATED,
+    };
+
+    return NextResponse.json(response, {
+      status: HttpStatusCode.CREATED,
+    });
   } catch (error) {
     console.error('[SCENE_CREATE_ERROR]', error);
-    return NextResponse.json({ error: 'Gagal membuat fase baru' }, { status: 500 });
+
+    const response: ApiErrorResponse = {
+      success: false,
+      message: 'Gagal membuat fase baru.',
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Terjadi kesalahan yang tidak diketahui.',
+      code: HttpStatusCode.INTERNAL_SERVER_ERROR,
+    };
+
+    return NextResponse.json(response, {
+      status: HttpStatusCode.INTERNAL_SERVER_ERROR,
+    });
   }
 }

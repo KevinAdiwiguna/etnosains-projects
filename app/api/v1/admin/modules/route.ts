@@ -1,34 +1,103 @@
-// app/api/modules/route.ts
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
+import { NextResponse } from "next/server";
 
-// GET: Ambil semua modul beserta urutannya
-export async function GET() {
+import { prisma } from "@/lib/db/prisma";
+import {
+  ApiErrorResponse,
+  ApiSuccessResponse,
+  HttpStatusCode,
+} from "@/types/api";
+
+export async function GET(): Promise<
+  NextResponse<ApiSuccessResponse | ApiErrorResponse>
+> {
   try {
     const modules = await prisma.module.findMany({
-      orderBy: { order: 'asc' },
+      orderBy: {
+        createdAt: "asc",
+      },
       include: {
         scenes: {
-          orderBy: { order: 'asc' },
+          orderBy: {
+            order: "asc",
+          },
         },
       },
     });
 
-    return NextResponse.json(modules, { status: 200 });
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Data modul berhasil diambil",
+        data: modules,
+        code: HttpStatusCode.OK,
+      },
+      {
+        status: HttpStatusCode.OK,
+      }
+    );
   } catch (error) {
-    console.error('[MODULES_GET_ERROR]', error);
-    return NextResponse.json({ error: 'Gagal mengambil data modul' }, { status: 500 });
+    console.error("[MODULES_GET_ERROR]", error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Gagal mengambil data modul",
+        error: "MODULES_GET_ERROR",
+        code: HttpStatusCode.INTERNAL_SERVER_ERROR,
+      },
+      {
+        status: HttpStatusCode.INTERNAL_SERVER_ERROR,
+      }
+    );
   }
 }
 
-// POST: Buat modul etnosains baru
-export async function POST(req: Request) {
+export async function POST(
+  req: Request
+): Promise<NextResponse<ApiSuccessResponse | ApiErrorResponse>> {
   try {
     const body = await req.json();
-    const { code, title, description, isPublished } = body;
+
+    const {
+      code,
+      title,
+      description,
+      isPublished = false,
+    } = body;
 
     if (!code || !title) {
-      return NextResponse.json({ error: 'Kode dan Judul modul wajib diisi' }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Kode dan judul modul wajib diisi",
+          code: HttpStatusCode.BAD_REQUEST,
+        },
+        {
+          status: HttpStatusCode.BAD_REQUEST,
+        }
+      );
+    }
+
+    const existingModule = await prisma.module.findUnique({
+      where: {
+        code,
+      },
+    });
+
+    if (existingModule) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Kode modul sudah digunakan",
+          code: HttpStatusCode.BAD_REQUEST,
+          details: {
+            code: ["Kode modul sudah digunakan"],
+          },
+        },
+        {
+          status: HttpStatusCode.BAD_REQUEST,
+        }
+      );
     }
 
     const newModule = await prisma.module.create({
@@ -36,13 +105,33 @@ export async function POST(req: Request) {
         code,
         title,
         description,
-        isPublished: isPublished ?? false,
+        isPublished,
       },
     });
 
-    return NextResponse.json(newModule, { status: 201 });
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Modul berhasil dibuat",
+        data: newModule,
+        code: HttpStatusCode.CREATED,
+      },
+      {
+        status: HttpStatusCode.CREATED,
+      }
+    );
   } catch (error) {
-    console.error('[MODULE_CREATE_ERROR]', error);
-    return NextResponse.json({ error: 'Gagal membuat modul baru' }, { status: 500 });
+    console.error("[MODULES_POST_ERROR]", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Gagal membuat modul baru",
+        error: "MODULES_POST_ERROR",
+        code: HttpStatusCode.INTERNAL_SERVER_ERROR,
+      },
+      {
+        status: HttpStatusCode.INTERNAL_SERVER_ERROR,
+      }
+    );
   }
 }

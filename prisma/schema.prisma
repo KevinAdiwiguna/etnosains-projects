@@ -26,7 +26,7 @@ enum QuestionType {
 model User {
   id            String            @id
   name          String
-  email         String
+  email         String            @unique
   nisn          String?
   class         String?
   rollNumber    String?
@@ -35,19 +35,18 @@ model User {
   image         String?
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
+
   sessions      Session[]
   accounts      Account[]
-
   responses     StudentResponse[]
 
-  @@unique([email])
   @@map("user")
 }
 
 model Session {
   id        String   @id
   expiresAt DateTime
-  token     String
+  token     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   ipAddress String?
@@ -55,7 +54,6 @@ model Session {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([token])
   @@index([userId])
   @@map("session")
 }
@@ -93,14 +91,14 @@ model Verification {
 }
 
 // ==========================================
-// STRUKTUR MODUL, FASE & WIDGET LAYOUT
+// STRUKTUR MODUL, FASE & BUILDER LAYOUT
 // ==========================================
 
 model Module {
   id          String   @id @default(cuid())
   code        String   @unique // Misal: "MODUL-01"
   title       String   // Misal: "CIDOMO - DINAMIKA GERAK"
-  description String?
+  description String?  @db.Text
   order       Int      @default(1)
   isPublished Boolean  @default(false)
   createdAt   DateTime @default(now())
@@ -119,37 +117,51 @@ model Scene {
   code        String   // Misal: "FASE_1", "FASE_2"
   title       String   // Misal: "ORIENTASI & PREDIKSI"
   order       Int      @default(1)
+  status      String   @default("TERKUNCI") // "TERBUKA" | "TERKUNCI"
 
-  // Menyimpan struktur layout grid halaman (misal: posisi x, y, width, height dari widget)
-  // Bentuknya JSON agar Admin bebas bikin layout tanpa ubah schema DB lagi
+  // Konfigurasi layout bawaan (opsional)
   layoutConfig Json?
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  blocks      Block[]
+  blocks         Block[]
+  builderContent BuilderContent? // Relasi 1-to-1 dengan JSON tree struktur builder @dnd-kit
 
   @@index([moduleId])
   @@map("scene")
 }
 
+// Model khusus penyimpan JSON Tree hasil drag-and-drop dari GridBuilder
+model BuilderContent {
+  id        String   @id @default(cuid())
+  sceneId   String   @unique
+  scene     Scene    @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+
+  // Menyimpan seluruh array `BuilderItem[]` (AccessCard, Sub-AccessCard, beserta komponen-komponennya)
+  content   Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("builder_content")
+}
+
 model Block {
-  id          String   @id @default(cuid())
-  sceneId     String
-  scene       Scene    @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  sceneId   String
+  scene     Scene    @relation(fields: [sceneId], references: [id], onDelete: Cascade)
 
-  type        String   // "TEXT_MEDIA", "FLIP_CARD", "QUIZ", "SIMULATION", "TELEMETRY_TABLE"
-  title       String?  // Judul Widget (misal: "KONTEKS OBSERVASI", "RUMUS & KONSEP INTI")
+  type      String   // "TEXT_MEDIA", "FLIP_CARD", "QUIZ", "SIMULATION", "TELEMETRY_TABLE"
+  title     String?  // Judul Widget
 
-  // Konfigurasi dinamis isi block (HTML text, URL gambar, data flipcard, dll)
-  content     Json?
+  content   Json?
 
-  order       Int      @default(1)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  order     Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  // Jika block ini tipe QUIZ / Soal Interaktif
-  questions   Question[]
+  questions Question[]
 
   @@index([sceneId])
   @@map("block")
@@ -160,19 +172,19 @@ model Block {
 // ==========================================
 
 model Question {
-  id                  String           @id @default(cuid())
+  id                  String            @id @default(cuid())
   blockId             String
-  block               Block            @relation(fields: [blockId], references: [id], onDelete: Cascade)
+  block               Block             @relation(fields: [blockId], references: [id], onDelete: Cascade)
 
-  code                String           // Kode unik riset, misal: "PREDIKSI_01", "CHECKPOINT_1"
-  type                QuestionType     @default(MULTIPLE_CHOICE)
-  prompt              String           // Teks pertanyaan utama
+  code                String            // Kode unik riset, misal: "PREDIKSI_01"
+  type                QuestionType      @default(MULTIPLE_CHOICE)
+  prompt              String            @db.Text // Teks pertanyaan utama
 
-  hasConfidenceSlider Boolean          @default(true) // Menentukan apakah ada slider keyakinan (CRI)
-  hasReasonInput      Boolean          @default(true) // Menentukan apakah ada kolom "ALASAN AWAL"
+  hasConfidenceSlider Boolean           @default(true) // Slider keyakinan (CRI)
+  hasReasonInput      Boolean           @default(true) // Kolom "ALASAN AWAL"
 
-  createdAt           DateTime         @default(now())
-  updatedAt           DateTime         @updatedAt
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
 
   options             QuestionOption[]
   responses           StudentResponse[]
@@ -188,7 +200,7 @@ model QuestionOption {
 
   code        String   // "A", "B", "C", "D"
   label       String   // Misal: "2,5 m/s"
-  description String?  // Misal: "Kecepatan jelajah konstan normal cidomo"
+  description String?  @db.Text
   isCorrect   Boolean  @default(false)
 
   responses   StudentResponse[]
@@ -210,16 +222,13 @@ model StudentResponse {
   questionId       String
   question         Question        @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
-  // Jawaban Pilihan Ganda (opsional, jika pilihan ganda)
   selectedOptionId String?
   selectedOption   QuestionOption? @relation(fields: [selectedOptionId], references: [id], onDelete: SetNull)
 
-  // Jawaban Isian / Alasan Penalaran
-  reasonAnswer     String?         // Menyimpan text seperti kolom "ALASAN AWAL"
-  essayAnswer      String?         // Untuk soal isian murni
+  reasonAnswer     String?         @db.Text // Teks "ALASAN AWAL"
+  essayAnswer      String?         @db.Text // Teks isian murni
 
-  // Tingkat Keyakinan / CRI (Certainty of Response Index)
-  confidenceLevel  Int?            // Nilai 0 - 100 (%)
+  confidenceLevel  Int?            // Nilai CRI (0 - 100 %)
 
   submittedAt      DateTime        @default(now())
   updatedAt        DateTime        @updatedAt

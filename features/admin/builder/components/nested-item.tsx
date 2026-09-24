@@ -49,7 +49,8 @@ export function NestedItem({
     isDragging,
   } = useSortable({ id: item.id });
 
-  const isContainer = item.type === 'ACCESS_CARD' || item.type === 'SUB_ACCESS_CARD';
+  const isContainer =
+    item.type === 'ACCESS_CARD' || item.type === 'SUB_ACCESS_CARD';
   const { setNodeRef: setDroppableRef, isOver } = useDroppable({
     id: `droppable-${item.id}`,
     disabled: !isContainer,
@@ -130,18 +131,6 @@ export function NestedItem({
         type="button"
         size="sm"
         variant="outline"
-        className="text-[10px] h-6 font-heading uppercase border border-border"
-        onClick={(e) => {
-          e.stopPropagation();
-          onAddChild(parentId, 'FLIP_CARD');
-        }}
-      >
-        + Flip Card
-      </Button>
-      <Button
-        type="button"
-        size="sm"
-        variant="outline"
         className="text-[10px] h-6 font-heading uppercase border border-border bg-primary/30 font-bold"
         onClick={(e) => {
           e.stopPropagation();
@@ -149,6 +138,56 @@ export function NestedItem({
         }}
       >
         + Sub-AccessCard
+      </Button>
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        className="text-[10px] h-6 font-heading uppercase border border-border"
+        onClick={(e) => {
+          e.stopPropagation();
+          onAddChild(parentId, 'MULTIPLE_CHOICE');
+        }}
+      >
+        + Soal Pilihan Ganda
+      </Button>
+
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        className="text-[10px] h-6 font-heading uppercase border border-border"
+        onClick={(e) => {
+          e.stopPropagation();
+          onAddChild(parentId, 'ESSAY_QUESTION');
+        }}
+      >
+        + Soal Isian
+      </Button>
+
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        className="text-[10px] h-6 font-heading uppercase border border-border"
+        onClick={(e) => {
+          e.stopPropagation();
+          onAddChild(parentId, 'INFO_CALLOUT_BAR');
+        }}
+      >
+        + Info Callout Bar
+      </Button>
+       <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        className="text-[10px] h-6 font-heading uppercase border border-border"
+        onClick={(e) => {
+          e.stopPropagation();
+          onAddChild(parentId, 'FLIP_CARD');
+        }}
+      >
+        + Flip Card
       </Button>
     </div>
   );
@@ -261,7 +300,8 @@ export function NestedItem({
                     Zona Komponen AccessCard Kosong
                   </p>
                   <p className="text-[10px] text-muted-foreground/80 mt-1">
-                    Gunakan tombol di footer untuk menambahkan komponen etnosains.
+                    Gunakan tombol di footer untuk menambahkan komponen
+                    etnosains.
                   </p>
                 </div>
               )}
@@ -352,7 +392,9 @@ export function NestedItem({
           <div
             ref={setDroppableRef}
             className={`min-h-[80px] p-2 rounded-lg border-2 border-dashed transition-colors flex flex-wrap gap-2 ${
-              isOver ? 'border-primary bg-primary/10' : 'border-border/40 bg-background/50'
+              isOver
+                ? 'border-primary bg-primary/10'
+                : 'border-border/40 bg-background/50'
             }`}
           >
             <SortableContext
@@ -385,7 +427,6 @@ export function NestedItem({
     );
   }
 
-  // 3. SUB-ELEMENT NON-CONTAINER (ETHNOGRAPHIC, MEDIA, CALLOUT, OBJECTIVES, PHASE_GRID, FLIP_CARD)
   return (
     <div
       ref={setSortableRef}
@@ -434,7 +475,11 @@ export function NestedItem({
         </div>
       </div>
 
-      <BuilderElementRenderer item={item} onUpdate={onUpdate} isEditable={true} />
+      <BuilderElementRenderer
+        item={item}
+        onUpdate={onUpdate}
+        isEditable={true}
+      />
     </div>
   );
 }

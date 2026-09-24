@@ -7,7 +7,10 @@ export type ElementType =
   | 'LEARNING_OBJECTIVES'
   | 'PHASE_GRID'
   | 'TEXT'
-  | 'FLIP_CARD';
+  | 'MULTIPLE_CHOICE'
+  | 'ESSAY_QUESTION'
+  | 'INFO_CALLOUT_BAR'
+  | "FLIP_CARD"
 
 export type LayoutWidth = 'w-full' | 'w-1/2' | 'w-1/3' | 'w-2/3';
 

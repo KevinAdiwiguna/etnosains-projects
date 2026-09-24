@@ -127,7 +127,7 @@ export function LearningObjectives({
       </div>
 
       {/* Items List */}
-      <div className="p-4 space-y-3">
+      <div className="p-4 space-y-3 grid grid-cols-1 md:grid-cols-2 gap-3">
         {items.map((item, idx) => (
           <div
             key={item.id}

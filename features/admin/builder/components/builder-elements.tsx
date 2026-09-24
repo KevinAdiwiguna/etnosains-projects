@@ -7,6 +7,10 @@ import { MediaContainer } from './elements/media-container';
 import { PhysicsCallout } from './elements/physics-callout';
 import { LearningObjectives } from './elements/learning-objectives';
 import { PhaseGrid } from './elements/phase-grid';
+import { EssayQuestion } from './elements/essay-question';
+import { InfoCalloutBar } from './info-callout-bar';
+import { MultipleChoiceQuiz } from './elements/multiple-choice-quiz';
+import { FlipCardElement } from './elements/flip-card-elements';
 // import { TextElement } from './elements/text-element';
 // import { FlipCardElement } from './elements/flip-card-element';
 
@@ -70,6 +74,50 @@ export function BuilderElementRenderer({
         <PhaseGrid
           headerTitle={value.headerTitle}
           phases={value.phases}
+          isEditable={isEditable}
+          onChange={(val) => onUpdate(id, 'value', { ...value, ...val })}
+        />
+      );
+    case 'FLIP_CARD':
+      return (
+        <FlipCardElement
+          frontTitle={value.frontTitle}
+          frontSub={value.frontSub}
+          backTitle={value.backTitle}
+          backText={value.backText}
+          isEditable={isEditable}
+          onChange={(val) => onUpdate(id, 'value', { ...value, ...val })}
+        />
+      );
+
+    case 'MULTIPLE_CHOICE':
+      return (
+        <MultipleChoiceQuiz
+          questionNumber={value.questionNumber}
+          questionText={value.questionText}
+          options={value.options}
+          correctAnswerId={value.correctAnswerId}
+          isEditable={isEditable}
+          onChange={(val) => onUpdate(id, 'value', { ...value, ...val })}
+        />
+      );
+
+    case 'ESSAY_QUESTION':
+      return (
+        <EssayQuestion
+          questionNumber={value.questionNumber}
+          questionText={value.questionText}
+          correctAnswerRubric={value.correctAnswerRubric}
+          isEditable={isEditable}
+          onChange={(val) => onUpdate(id, 'value', { ...value, ...val })}
+        />
+      );
+
+    case 'INFO_CALLOUT_BAR':
+      return (
+        <InfoCalloutBar
+          titleText={value.titleText}
+          descriptionText={value.descriptionText}
           isEditable={isEditable}
           onChange={(val) => onUpdate(id, 'value', { ...value, ...val })}
         />

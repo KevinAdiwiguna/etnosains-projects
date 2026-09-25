@@ -63,12 +63,7 @@ export async function POST(
     const { moduleId } = await params;
     const body = await req.json();
 
-    const {
-      code,
-      title,
-      order,
-      status,
-    } = body;
+    const { code, title, order, workTime, status } = body;
 
     if (!code || !title) {
       const response: ApiErrorResponse = {
@@ -89,6 +84,7 @@ export async function POST(
         title,
         order: order ?? 1,
         status: status ?? 'TERKUNCI',
+        workTime: workTime ?? 20,
       },
     });
 

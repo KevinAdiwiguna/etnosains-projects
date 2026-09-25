@@ -21,7 +21,7 @@ export async function PATCH(
   const body = await req.json();
 
   try {
-    const { code, title, order, status } = body;
+    const { code, title, order, status, workTime } = body;
 
     const existingScene = await prisma.scene.findUnique({
       where: {
@@ -49,6 +49,7 @@ export async function PATCH(
       data: {
         code,
         title,
+        workTime,
         order,
         status,
       },
@@ -82,7 +83,6 @@ export async function PATCH(
     });
   }
 }
-
 
 export async function DELETE(
   _req: Request,

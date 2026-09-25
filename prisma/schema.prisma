@@ -11,6 +11,7 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
 enum Role {
   STUDENT
   TEACHER
@@ -24,21 +25,21 @@ enum QuestionType {
 }
 
 model User {
-  id            String            @id
+  id            String   @id
   name          String
-  email         String            @unique
+  email         String   @unique
   nisn          String?
   class         String?
   rollNumber    String?
-  role          Role              @default(STUDENT)
-  emailVerified Boolean           @default(false)
+  role          Role     @default(STUDENT)
+  emailVerified Boolean  @default(false)
   image         String?
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  sessions      Session[]
-  accounts      Account[]
-  responses     StudentResponse[]
+  sessions  Session[]
+  accounts  Account[]
+  responses StudentResponse[]
 
   @@map("user")
 }
@@ -90,56 +91,52 @@ model Verification {
   @@map("verification")
 }
 
-// ==========================================
-// STRUKTUR MODUL, FASE & BUILDER LAYOUT
-// ==========================================
-
 model Module {
   id          String   @id @default(cuid())
-  code        String   @unique // Misal: "MODUL-01"
-  title       String   // Misal: "CIDOMO - DINAMIKA GERAK"
+  code        String   @unique
+  title       String
   description String?  @db.Text
+  thumbnail   String?
   order       Int      @default(1)
   isPublished Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  scenes      Scene[]
+  scenes Scene[]
 
   @@map("module")
 }
 
 model Scene {
-  id          String   @id @default(cuid())
-  moduleId    String
-  module      Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  id       String @id @default(cuid())
+  moduleId String
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
 
-  code        String   // Misal: "FASE_1", "FASE_2"
-  title       String   // Misal: "ORIENTASI & PREDIKSI"
-  order       Int      @default(1)
-  status      String   @default("TERKUNCI") // "TERBUKA" | "TERKUNCI"
+  workTime Int
 
-  // Konfigurasi layout bawaan (opsional)
+  code   String
+  title  String
+  order  Int    @default(1)
+  status String @default("TERKUNCI")
+
   layoutConfig Json?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   blocks         Block[]
-  builderContent BuilderContent? // Relasi 1-to-1 dengan JSON tree struktur builder @dnd-kit
+  builderContent BuilderContent?
 
   @@index([moduleId])
   @@map("scene")
 }
 
-// Model khusus penyimpan JSON Tree hasil drag-and-drop dari GridBuilder
 model BuilderContent {
-  id        String   @id @default(cuid())
-  sceneId   String   @unique
-  scene     Scene    @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  sceneId String @unique
+  scene   Scene  @relation(fields: [sceneId], references: [id], onDelete: Cascade)
 
-  // Menyimpan seluruh array `BuilderItem[]` (AccessCard, Sub-AccessCard, beserta komponen-komponennya)
-  content   Json
+  content Json
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -148,14 +145,14 @@ model BuilderContent {
 }
 
 model Block {
-  id        String   @id @default(cuid())
-  sceneId   String
-  scene     Scene    @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  sceneId String
+  scene   Scene  @relation(fields: [sceneId], references: [id], onDelete: Cascade)
 
-  type      String   // "TEXT_MEDIA", "FLIP_CARD", "QUIZ", "SIMULATION", "TELEMETRY_TABLE"
-  title     String?  // Judul Widget
+  type  String
+  title String?
 
-  content   Json?
+  content Json?
 
   order     Int      @default(1)
   createdAt DateTime @default(now())
@@ -167,43 +164,39 @@ model Block {
   @@map("block")
 }
 
-// ==========================================
-// STRUKTUR SOAL & RISET (TERSTRUKTUR)
-// ==========================================
-
 model Question {
-  id                  String            @id @default(cuid())
-  blockId             String
-  block               Block             @relation(fields: [blockId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  blockId String
+  block   Block  @relation(fields: [blockId], references: [id], onDelete: Cascade)
 
-  code                String            // Kode unik riset, misal: "PREDIKSI_01"
-  type                QuestionType      @default(MULTIPLE_CHOICE)
-  prompt              String            @db.Text // Teks pertanyaan utama
+  code   String
+  type   QuestionType @default(MULTIPLE_CHOICE)
+  prompt String       @db.Text
 
-  hasConfidenceSlider Boolean           @default(true) // Slider keyakinan (CRI)
-  hasReasonInput      Boolean           @default(true) // Kolom "ALASAN AWAL"
+  hasConfidenceSlider Boolean @default(true)
+  hasReasonInput      Boolean @default(true)
 
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  options             QuestionOption[]
-  responses           StudentResponse[]
+  options   QuestionOption[]
+  responses StudentResponse[]
 
   @@index([blockId])
   @@map("question")
 }
 
 model QuestionOption {
-  id          String   @id @default(cuid())
-  questionId  String
-  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
-  code        String   // "A", "B", "C", "D"
-  label       String   // Misal: "2,5 m/s"
-  description String?  @db.Text
-  isCorrect   Boolean  @default(false)
+  code        String
+  label       String
+  description String? @db.Text
+  isCorrect   Boolean @default(false)
 
-  responses   StudentResponse[]
+  responses StudentResponse[]
 
   @@index([questionId])
   @@map("question_option")
@@ -214,24 +207,24 @@ model QuestionOption {
 // ==========================================
 
 model StudentResponse {
-  id               String          @id @default(cuid())
+  id String @id @default(cuid())
 
-  userId           String
-  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  questionId       String
-  question         Question        @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   selectedOptionId String?
   selectedOption   QuestionOption? @relation(fields: [selectedOptionId], references: [id], onDelete: SetNull)
 
-  reasonAnswer     String?         @db.Text // Teks "ALASAN AWAL"
-  essayAnswer      String?         @db.Text // Teks isian murni
+  reasonAnswer String? @db.Text // Teks "ALASAN AWAL"
+  essayAnswer  String? @db.Text // Teks isian murni
 
-  confidenceLevel  Int?            // Nilai CRI (0 - 100 %)
+  confidenceLevel Int? // Nilai CRI (0 - 100 %)
 
-  submittedAt      DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+  submittedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@unique([userId, questionId])
   @@index([userId])

@@ -36,25 +36,25 @@ const navigation: NavItem[] = [
     icon: Users,
   },
   {
-    title: "Progres & Telemetri",
-    href: "/dashboard/progres",
+    title: "Modules",
+    href: "/dashboard/modules",
     icon: BarChart3,
   },
-  {
-    title: "Bank Data Penelitian",
-    href: "/dashboard/data",
-    icon: Database,
-  },
-  {
-    title: "Ekspor Data (.CSV)",
-    href: "/dashboard/export",
-    icon: Download,
-  },
-  {
-    title: "Pengaturan",
-    href: "/dashboard/pengaturan",
-    icon: Settings2,
-  },
+  // {
+  //   title: "Bank Data Penelitian",
+  //   href: "/dashboard/data",
+  //   icon: Database,
+  // },
+  // {
+  //   title: "Ekspor Data (.CSV)",
+  //   href: "/dashboard/export",
+  //   icon: Download,
+  // },
+  // {
+  //   title: "Pengaturan",
+  //   href: "/dashboard/pengaturan",
+  //   icon: Settings2,
+  // },
 ];
 
 interface ResearchSidebarProps {

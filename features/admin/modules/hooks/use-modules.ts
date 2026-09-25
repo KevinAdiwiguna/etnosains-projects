@@ -15,6 +15,7 @@ export type CreateModuleInput = {
   title: string;
   description?: string;
   isPublished?: boolean;
+  thumbnail?: File | null;
 };
 
 export type UpdateModuleInput = {
@@ -22,6 +23,7 @@ export type UpdateModuleInput = {
   title?: string;
   description?: string;
   isPublished?: boolean;
+  thumbnail?: File | null;
 };
 
 export type UpdateModuleMutationInput = {
@@ -39,10 +41,64 @@ async function getModules(): Promise<ModuleWithScenes[]> {
   return response.data.data;
 }
 
+function createModuleFormData(payload: CreateModuleInput): FormData {
+  const formData = new FormData();
+
+  formData.append('code', payload.code.trim());
+  formData.append('title', payload.title.trim());
+
+  if (payload.description) {
+    formData.append('description', payload.description.trim());
+  }
+
+  if (payload.isPublished !== undefined) {
+    formData.append('isPublished', String(payload.isPublished));
+  }
+
+  if (payload.thumbnail) {
+    formData.append('thumbnail', payload.thumbnail);
+  }
+
+  return formData;
+}
+
+function updateModuleFormData(payload: UpdateModuleInput): FormData {
+  const formData = new FormData();
+
+  if (payload.code !== undefined) {
+    formData.append('code', payload.code);
+  }
+
+  if (payload.title !== undefined) {
+    formData.append('title', payload.title);
+  }
+
+  if (payload.description !== undefined) {
+    formData.append('description', payload.description);
+  }
+
+  if (payload.isPublished !== undefined) {
+    formData.append('isPublished', String(payload.isPublished));
+  }
+
+  if (payload.thumbnail) {
+    formData.append('thumbnail', payload.thumbnail);
+  }
+
+  return formData;
+}
+
 async function createModule(payload: CreateModuleInput): Promise<Module> {
+  const formData = createModuleFormData(payload);
+
   const response = await api.post<ApiSuccessResponse<Module>>(
     '/api/v1/admin/modules',
-    payload
+    formData,
+    {
+      headers: {
+        'Content-Type': undefined,
+      },
+    }
   );
 
   return response.data.data;
@@ -52,9 +108,11 @@ async function updateModule({
   id,
   data,
 }: UpdateModuleMutationInput): Promise<Module> {
+  const formData = updateModuleFormData(data);
+
   const response = await api.patch<ApiSuccessResponse<Module>>(
     `/api/v1/admin/modules/${id}`,
-    data
+    formData
   );
 
   return response.data.data;
@@ -94,7 +152,7 @@ export function useCreateModule() {
     },
 
     onError: (error) => {
-      toast.error(error.response?.data?.message ?? 'Gagal membuat modul baru.');
+      toast.error(error?.message ?? 'Gagal membuat modul baru.');
     },
   });
 }

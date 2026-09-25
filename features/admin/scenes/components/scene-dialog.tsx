@@ -55,6 +55,8 @@ export function SceneDialog({
   const [title, setTitle] = useState('');
   const [order, setOrder] = useState('1');
   const [status, setStatus] = useState<'TERBUKA' | 'TERKUNCI'>('TERKUNCI');
+  const [workTime, setWorkTime] = useState('20');
+
 
   useEffect(() => {
     if (scene) {
@@ -153,6 +155,19 @@ export function SceneDialog({
               onChange={(event) => setTitle(event.target.value)}
               placeholder="Contoh: Pengenalan Materi"
               disabled={isPending}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Input
+              title="Waktu Pengerjaan (menit)"
+              type="number"
+              id="scene-workTime"
+              value={workTime}
+              onChange={(event) => setWorkTime(event.target.value)}
+              placeholder="Contoh: 20"
+              disabled={isPending}
+              required
             />
           </div>
 

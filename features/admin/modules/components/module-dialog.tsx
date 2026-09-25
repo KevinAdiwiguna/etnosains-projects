@@ -142,8 +142,9 @@ export function ModuleDialog({
             </Button>
             <Button
               type="submit"
-              disabled={isPending}
-              className="border-2 border-border bg-emerald-400 text-slate-950 hover:bg-emerald-500 font-heading text-xs font-bold uppercase shadow-[2px_2px_0_var(--border)]"
+              disabled={isPending || !code.trim() || !title.trim()}
+              variant={"accent"}
+              className="bg-chart-4"
             >
               {isPending ? (
                 <>

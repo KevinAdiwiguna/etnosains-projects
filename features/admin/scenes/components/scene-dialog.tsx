@@ -198,8 +198,9 @@ export function SceneDialog({
 
             <Button
               type="submit"
+              variant={'accent'}
               disabled={isPending || !code.trim() || !title.trim()}
-              className="border-2 border-border font-heading text-xs font-bold uppercase shadow-[2px_2px_0_var(--border)]"
+              className="bg-chart-4"
             >
               {isPending ? (
                 <>

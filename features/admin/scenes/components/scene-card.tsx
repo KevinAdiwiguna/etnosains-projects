@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { Edit3, Layers, Trash2 } from "lucide-react";
+import Link from 'next/link';
+import { Edit3, Layers, Trash2 } from 'lucide-react';
 
-import { Button } from "@/components/ui/button";
-import { Scene } from "@/lib/generated/prisma/client";
+import { Button } from '@/components/ui/button';
+import { Scene } from '@/lib/generated/prisma/client';
 
 interface SceneCardProps {
   scene: Scene;
@@ -12,11 +12,7 @@ interface SceneCardProps {
   onDelete: (scene: Scene) => void;
 }
 
-export function SceneCard({
-  scene,
-  onEdit,
-  onDelete,
-}: SceneCardProps) {
+export function SceneCard({ scene, onEdit, onDelete }: SceneCardProps) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-4 border-border bg-background p-4 shadow-[4px_4px_0_var(--border)]">
       <div className="flex items-center gap-3">
@@ -35,10 +31,7 @@ export function SceneCard({
 
       <div className="flex flex-wrap items-center gap-2">
         <Link href={`/dashboard/builder/${scene.id}`}>
-          <Button
-            type="button"
-            className="flex cursor-pointer items-center gap-2 border-2 border-border bg-emerald-400 font-heading text-xs font-bold uppercase text-slate-950 shadow-[2px_2px_0_var(--border)] hover:bg-emerald-500"
-          >
+          <Button type="button" variant="accent">
             <Edit3 className="size-4" />
             Edit di Canvas Builder
           </Button>

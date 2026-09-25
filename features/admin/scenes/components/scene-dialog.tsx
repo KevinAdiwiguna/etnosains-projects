@@ -134,6 +134,7 @@ export function SceneDialog({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Input
+              required
               title="Kode Fase"
               id="scene-code"
               value={code}
@@ -145,6 +146,7 @@ export function SceneDialog({
 
           <div className="space-y-2">
             <Input
+              required
               title="Judul Fase"
               id="scene-title"
               value={title}

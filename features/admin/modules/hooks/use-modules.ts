@@ -1,17 +1,10 @@
-import {
-  useQuery,
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query";
-import { AxiosError } from "axios";
-import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
+import { toast } from 'sonner';
 
-import { api } from "@/lib/api/axios";
-import { Module } from "@/lib/generated/prisma/client";
-import {
-  ApiErrorResponse,
-  ApiSuccessResponse,
-} from "@/types/api";
+import { api } from '@/lib/api/axios';
+import { Module } from '@/lib/generated/prisma/client';
+import { ApiErrorResponse, ApiSuccessResponse } from '@/types/api';
 
 export type ModuleWithScenes = Module & {
   scenes?: { id: string }[];
@@ -36,21 +29,19 @@ export type UpdateModuleMutationInput = {
   data: UpdateModuleInput;
 };
 
-const MODULES_QUERY_KEY = ["admin/modules"] as const;
+const MODULES_QUERY_KEY = ['admin/modules'] as const;
 
 async function getModules(): Promise<ModuleWithScenes[]> {
-  const response = await api.get<
-    ApiSuccessResponse<ModuleWithScenes[]>
-  >("/api/v1/admin/modules");
+  const response = await api.get<ApiSuccessResponse<ModuleWithScenes[]>>(
+    '/api/v1/admin/modules'
+  );
 
   return response.data.data;
 }
 
-async function createModule(
-  payload: CreateModuleInput
-): Promise<Module> {
+async function createModule(payload: CreateModuleInput): Promise<Module> {
   const response = await api.post<ApiSuccessResponse<Module>>(
-    "/api/v1/admin/modules",
+    '/api/v1/admin/modules',
     payload
   );
 
@@ -72,18 +63,15 @@ async function updateModule({
 async function deleteModule(
   id: string
 ): Promise<ApiSuccessResponse<{ id: string }>> {
-  const response = await api.delete<
-    ApiSuccessResponse<{ id: string }>
-  >(`/api/v1/admin/modules/${id}`);
+  const response = await api.delete<ApiSuccessResponse<{ id: string }>>(
+    `/api/v1/admin/modules/${id}`
+  );
 
   return response.data;
 }
 
 export function useModules() {
-  return useQuery<
-    ModuleWithScenes[],
-    AxiosError<ApiErrorResponse>
-  >({
+  return useQuery<ModuleWithScenes[], AxiosError<ApiErrorResponse>>({
     queryKey: MODULES_QUERY_KEY,
     queryFn: getModules,
   });
@@ -92,15 +80,11 @@ export function useModules() {
 export function useCreateModule() {
   const queryClient = useQueryClient();
 
-  return useMutation<
-    Module,
-    AxiosError<ApiErrorResponse>,
-    CreateModuleInput
-  >({
+  return useMutation<Module, AxiosError<ApiErrorResponse>, CreateModuleInput>({
     mutationFn: createModule,
 
     onSuccess: (data) => {
-      toast.success("Modul berhasil dibuat", {
+      toast.success('Modul berhasil dibuat', {
         description: `Modul "${data.title}" berhasil ditambahkan.`,
       });
 
@@ -110,10 +94,7 @@ export function useCreateModule() {
     },
 
     onError: (error) => {
-      toast.error(
-        error.response?.data?.message ??
-          "Gagal membuat modul baru."
-      );
+      toast.error(error.response?.data?.message ?? 'Gagal membuat modul baru.');
     },
   });
 }
@@ -129,7 +110,7 @@ export function useUpdateModule() {
     mutationFn: updateModule,
 
     onSuccess: (data) => {
-      toast.success("Modul berhasil diperbarui", {
+      toast.success('Modul berhasil diperbarui', {
         description: `Modul "${data.title}" berhasil diperbarui.`,
       });
 
@@ -139,10 +120,7 @@ export function useUpdateModule() {
     },
 
     onError: (error) => {
-      toast.error(
-        error.response?.data?.message ??
-          "Gagal memperbarui modul."
-      );
+      toast.error(error.response?.data?.message ?? 'Gagal memperbarui modul.');
     },
   });
 }
@@ -158,9 +136,7 @@ export function useDeleteModule() {
     mutationFn: deleteModule,
 
     onSuccess: (data) => {
-      toast.success(
-        data.message ?? "Modul berhasil dihapus."
-      );
+      toast.success(data.message ?? 'Modul berhasil dihapus.');
 
       queryClient.invalidateQueries({
         queryKey: MODULES_QUERY_KEY,
@@ -168,10 +144,7 @@ export function useDeleteModule() {
     },
 
     onError: (error) => {
-      toast.error(
-        error.response?.data?.message ??
-          "Gagal menghapus modul."
-      );
+      toast.error(error.response?.data?.message ?? 'Gagal menghapus modul.');
     },
   });
 }

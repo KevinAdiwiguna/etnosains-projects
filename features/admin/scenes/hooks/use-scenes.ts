@@ -146,7 +146,7 @@ export function useUpdateScene() {
 
     onError: (error) => {
       toast.error(
-        error.response?.data?.message ??
+        error?.message ??
           "Gagal memperbarui fase."
       );
     },

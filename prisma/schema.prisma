@@ -96,6 +96,7 @@ model Module {
   code        String   @unique
   title       String
   description String?  @db.Text
+  thumbnail   String?
   order       Int      @default(1)
   isPublished Boolean  @default(false)
   createdAt   DateTime @default(now())

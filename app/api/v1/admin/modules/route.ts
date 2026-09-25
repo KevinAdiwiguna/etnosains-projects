@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { uploadToS3 } from "@/lib/storage/s3";
 import { prisma } from "@/lib/db/prisma";
 import {
   ApiErrorResponse,
@@ -36,8 +37,6 @@ export async function GET(): Promise<
       }
     );
   } catch (error) {
-    console.error("[MODULES_GET_ERROR]", error);
-
     return NextResponse.json(
       {
         success: false,
@@ -56,32 +55,39 @@ export async function POST(
   req: Request
 ): Promise<NextResponse<ApiSuccessResponse | ApiErrorResponse>> {
   try {
-    const body = await req.json();
+    const contentType = req.headers.get("content-type") || "";
+    if (!contentType.includes("multipart/form-data")) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Request harus menggunakan format multipart/form-data",
+          code: HttpStatusCode.BAD_REQUEST,
+        },
+        { status: HttpStatusCode.BAD_REQUEST }
+      );
+    }
 
-    const {
-      code,
-      title,
-      description,
-      isPublished = false,
-    } = body;
+    const formData = await req.formData();
 
-    if (!code || !title) {
+    const code = formData.get("code") as string | null;
+    const title = formData.get("title") as string | null;
+    const description = formData.get("description") as string | null;
+    const isPublished = formData.get("isPublished") as string | null;
+    const thumbnail = formData.get("thumbnail");
+
+    if (!code?.trim() || !title?.trim()) {
       return NextResponse.json(
         {
           success: false,
           message: "Kode dan judul modul wajib diisi",
           code: HttpStatusCode.BAD_REQUEST,
         },
-        {
-          status: HttpStatusCode.BAD_REQUEST,
-        }
+        { status: HttpStatusCode.BAD_REQUEST }
       );
     }
 
     const existingModule = await prisma.module.findUnique({
-      where: {
-        code,
-      },
+      where: { code: code.trim() },
     });
 
     if (existingModule) {
@@ -90,22 +96,57 @@ export async function POST(
           success: false,
           message: "Kode modul sudah digunakan",
           code: HttpStatusCode.BAD_REQUEST,
-          details: {
-            code: ["Kode modul sudah digunakan"],
-          },
+          details: { code: ["Kode modul sudah digunakan"] },
         },
-        {
-          status: HttpStatusCode.BAD_REQUEST,
-        }
+        { status: HttpStatusCode.BAD_REQUEST }
       );
+    }
+
+    let thumbnailPath: string | null = null;
+
+    if (thumbnail instanceof File && thumbnail.size > 0) {
+      const allowedThumbnailTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+      ];
+
+      if (!allowedThumbnailTypes.includes(thumbnail.type)) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Format thumbnail tidak didukung",
+            code: HttpStatusCode.BAD_REQUEST,
+            details: {
+              thumbnail: ["Thumbnail harus berupa JPG, JPEG, PNG, atau WEBP."],
+            },
+          },
+          { status: HttpStatusCode.BAD_REQUEST }
+        );
+      }
+
+      const arrayBuffer = await thumbnail.arrayBuffer();
+      const buffer = Buffer.from(new Uint8Array(arrayBuffer));
+
+      console.log("Thumbnail buffer size (bytes):", buffer.length);
+
+      const uploadResult = await uploadToS3({
+        fileBuffer: buffer,
+        fileName: thumbnail.name,
+        mimeType: thumbnail.type,
+        folder: `modules/${code.trim()}/thumbnail`,
+      });
+
+      thumbnailPath = uploadResult.relativePath;
     }
 
     const newModule = await prisma.module.create({
       data: {
-        code,
-        title,
-        description,
-        isPublished,
+        code: code.trim(),
+        title: title.trim(),
+        description: description?.trim() || null,
+        isPublished: isPublished === "true",
+        thumbnail: thumbnailPath,
       },
     });
 
@@ -116,12 +157,9 @@ export async function POST(
         data: newModule,
         code: HttpStatusCode.CREATED,
       },
-      {
-        status: HttpStatusCode.CREATED,
-      }
+      { status: HttpStatusCode.CREATED }
     );
   } catch (error) {
-    console.error("[MODULES_POST_ERROR]", error);
     return NextResponse.json(
       {
         success: false,
@@ -129,9 +167,7 @@ export async function POST(
         error: "MODULES_POST_ERROR",
         code: HttpStatusCode.INTERNAL_SERVER_ERROR,
       },
-      {
-        status: HttpStatusCode.INTERNAL_SERVER_ERROR,
-      }
+      { status: HttpStatusCode.INTERNAL_SERVER_ERROR }
     );
   }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ import {
   ModuleWithScenes,
 } from '../hooks/use-modules';
 import { Checkbox } from '@/components/ui/checkbox';
+import Image from 'next/image';
 
 interface ModuleDialogProps {
   isOpen: boolean;
@@ -33,35 +34,75 @@ export function ModuleDialog({
   const { mutate: createModule, isPending: isCreating } = useCreateModule();
   const { mutate: updateModule, isPending: isUpdating } = useUpdateModule();
 
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const [code, setCode] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [isPublished, setIsPublished] = useState(false);
 
+  const [thumbnail, setThumbnail] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+
   const isEdit = !!moduleToEdit;
   const isPending = isCreating || isUpdating;
 
   useEffect(() => {
+    if (!isOpen) return;
+
     if (moduleToEdit) {
       setCode(moduleToEdit.code);
       setTitle(moduleToEdit.title);
       setDescription(moduleToEdit.description || '');
       setIsPublished(moduleToEdit.isPublished);
+      setThumbnailPreview(`http://20.189.93.251:8333/etnosciense${moduleToEdit.thumbnail}` || null);
     } else {
       setCode('');
       setTitle('');
       setDescription('');
       setIsPublished(false);
+      setThumbnailPreview(null);
+    }
+
+    setThumbnail(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   }, [moduleToEdit, isOpen]);
 
+  useEffect(() => {
+    if (!thumbnail) return;
+
+    const previewUrl = URL.createObjectURL(thumbnail);
+    setThumbnailPreview(previewUrl);
+
+    return () => {
+      URL.revokeObjectURL(previewUrl);
+    };
+  }, [thumbnail]);
+
+  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    setThumbnail(file);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!code || !title) return;
+
+    if (!code.trim() || !title.trim()) return;
 
     if (isEdit && moduleToEdit) {
       updateModule(
-        { id: moduleToEdit.id, data: { code, title, description, isPublished } },
+        {
+          id: moduleToEdit.id,
+          data: {
+            code,
+            title,
+            description,
+            isPublished,
+            thumbnail,
+          },
+        },
         {
           onSuccess: () => {
             onOpenChange(false);
@@ -70,7 +111,13 @@ export function ModuleDialog({
       );
     } else {
       createModule(
-        { code, title, description, isPublished },
+        {
+          code,
+          title,
+          description,
+          isPublished,
+          thumbnail,
+        },
         {
           onSuccess: () => {
             onOpenChange(false);
@@ -90,34 +137,52 @@ export function ModuleDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Input
-              title="Kode Modul"
-              placeholder="misal: MODUL-01"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              required
+              ref={fileInputRef}
+              title="Thumbnail"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              required={!isEdit}
+              onChange={handleThumbnailChange}
             />
+
+            {thumbnailPreview && (
+              <div className="overflow-hidden border-2 border-border shadow-[3px_3px_0_var(--border)]">
+                <Image
+                  width={400}
+                  height={400}
+                  src={thumbnailPreview}
+                  unoptimized
+                  alt="Preview thumbnail"
+                  className="aspect-video w-full object-cover"
+                />
+              </div>
+            )}
           </div>
 
-          <div className="space-y-1.5">
-            <Input
-              title="Judul Modul"
-              placeholder="misal: CIDOMO - DINAMIKA GERAK"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-          </div>
+          <Input
+            title="Kode Modul"
+            placeholder="misal: MODUL-01"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            required
+          />
 
-          <div className="space-y-1.5">
-            <Input
-              title="Deskripsi Modul"
-              placeholder="deskripsi modul"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-          </div>
+          <Input
+            title="Judul Modul"
+            placeholder="misal: CIDOMO - DINAMIKA GERAK"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
+
+          <Input
+            title="Deskripsi Modul"
+            placeholder="deskripsi modul"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
 
           <div className="flex items-center space-x-2">
             <Checkbox
@@ -126,6 +191,7 @@ export function ModuleDialog({
               checked={isPublished}
               onCheckedChange={(checked) => setIsPublished(checked as boolean)}
             />
+
             <label htmlFor="is-published" className="text-sm font-medium">
               Publikasikan Modul
             </label>
@@ -140,10 +206,11 @@ export function ModuleDialog({
             >
               Batal
             </Button>
+
             <Button
               type="submit"
               disabled={isPending || !code.trim() || !title.trim()}
-              variant={"accent"}
+              variant="accent"
               className="bg-chart-4"
             >
               {isPending ? (
